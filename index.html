@@ -66,7 +66,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.3/howler.min.js" type="text/javascript"></script>
 <script>
     var sound = new Howl({
-        src: ['go_corona.mp3']
+        src: ['go_corona.mp3'],
+        html5:false
     });
 
     var canvas = document.getElementById("canvas");
@@ -257,7 +258,7 @@
                     startAnimation();
                     sound.play();
                 } else {
-                    
+
                     let num_new_d = Number(data.deaths);
                     let num_old_d = Number(deaths);
                     if(num_new_d>num_old_d){
