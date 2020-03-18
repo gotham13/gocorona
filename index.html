@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <style>
+
+        canvas{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .centered {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .masthead.segment {
+            min-height: 100%;
+            padding: 1em 0em;
+        }
+        .masthead .logo.item img {
+            margin-right: 1em;
+        }
+        .masthead .ui.menu .ui.button {
+            margin-left: 0.5em;
+        }
+        .masthead img{
+            margin-top: 3em !important;
+            max-width:100% !important;
+        }
+        .masthead h1.ui.header {
+            margin-bottom: 0em;
+            font-size: 4em;
+            font-weight: normal;
+        }
+        .masthead h2 {
+            font-size: 1.7em;
+            font-weight: normal;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="ui inverted vertical masthead center aligned segment">
+    <canvas id="canvas"></canvas>
+    <div class="ui  container" style=" position: relative; left: 0;right: 0; z-index: 1; pointer-events: none;">
+
+        <h1 class="ui inverted header">
+            Total Covid Deaths
+        </h1>
+        <img style="margin: auto;" class="ui medium circular image" src="spin.gif">
+        <h1 id="death" class="ui inverted header centered">
+
+        </h1>
+        <h1 class="ui inverted header">
+            R.I.P
+        </h1>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.3/howler.min.js" type="text/javascript"></script>
+<script>
+    var sound = new Howl({
+        src: ['go_corona.mp3']
+    });
+
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+
+    var grd,
+        keys_down = [],
+        letters = [];
+    //list
+    var symbols=[{k:81,s:"R.I.P",x:5},
+        {k:87,s:"R.I.P",x:15},
+        {k:69,s:"R.I.P",x:25},
+        {k:82,s:"R.I.P",x:35},
+        {k:84,s:"R.I.P",x:45},
+        {k:89,s:"R.I.P",x:55},{k:85,s:"R.I.P",x:65},
+        {k:73,s:"R.I.P",x:75},
+        {k:79,s:"R.I.P",x:85},
+        {k:80,s:"R.I.P",x:95},
+        {k:65,s:"R.I.P",x:10},
+        {k:83,s:"R.I.P",x:20},
+        {k:68,s:"R.I.P",x:30},
+        {k:70,s:"R.I.P",x:40},
+        {k:71,s:"R.I.P",x:50},
+        {k:72,s:"R.I.P",x:60},
+        {k:74,s:"R.I.P",x:70},
+        {k:75,s:"R.I.P",x:80},
+        {k:76,s:"R.I.P",x:90},
+        {k:90,s:"z",x:20},
+        {k:88,s:"x",x:30},
+        {k:67,s:"c",x:40},
+        {k:86,s:"v",x:50},
+        {k:66,s:"b",x:60},
+        {k:78,s:"د",x:70},{k:77,s:"m",x:80},{k:48,s:"0",x:90},{k:49,s:"م",x:0},{k:50,s:"2",x:10},{k:51,s:"3",x:20},{k:52,s:"4",x:30},{k:53,s:"5",x:40},{k:54,s:"6",x:50},{k:55,s:"7",x:60},{k:56,s:"8",x:70},{k:57,s:"9",x:80}];
+
+    function Letter (key) {
+        this.x = findX(key);
+        this.symbol = findS(key);
+        this.color = "rgba(255, 255, 255, "+Math.random()+")";
+        this.size = Math.floor((Math.random() * 40) + 12);
+        this.path = getRandomPath(this.x);
+        this.rotate = Math.floor((Math.random() * Math.PI) + 1);
+        this.percent = 0;
+    }
+
+    Letter.prototype.draw = function() {
+        var percent= this.percent/100;
+        var xy = getQuadraticBezierXYatPercent(this.path[0],this.path[1],this.path[2],percent);
+        ctx.save();
+        ctx.translate(xy.x, xy.y);
+        ctx.rotate(this.rotate);
+        ctx.font = this.size+"px Arial";
+        ctx.fillStyle = this.color;
+        ctx.fillText(this.symbol, -15, -15);
+        ctx.restore();
+    };
+
+    Letter.prototype.drawPath = function(){
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(this.path[0].x, this.path[0].y);
+        ctx.quadraticCurveTo(this.path[1].x, this.path[1].y, this.path[2].x, this.path[2].y);
+        ctx.stroke();
+    };
+
+    function findX(key){
+        for (var i = 0; i < symbols.length; i++) {
+            if(symbols[i].k == key){
+                return (symbols[i].x * canvas.width / 100);
+            }
+        };
+        return false;
+    }
+
+    function findS(key){
+        for (var i = 0; i < symbols.length; i++) {
+            if(symbols[i].k == key){
+                return symbols[i].s;
+            }
+        };
+        return false;
+    }
+
+    function getRandomPath(x){
+        var x_start = x;
+        var x_end = x_start + Math.floor((Math.random() * 400) - 199);
+
+        return [{
+            x: x_start,
+            y: canvas.height
+        },{
+            x: (x_start + x_end)/2,
+            y: Math.floor((Math.random() * canvas.height) - canvas.height)
+        },{
+            x: x_end,
+            y: canvas.height
+        }];
+    }
+
+    function drawBackground(){
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function getLineXYatPercent(startPt,endPt,percent) {
+        var dx = endPt.x-startPt.x;
+        var dy = endPt.y-startPt.y;
+        var X = startPt.x + dx*percent;
+        var Y = startPt.y + dy*percent;
+        return( {x:X,y:Y} );
+    }
+
+    function getQuadraticBezierXYatPercent(startPt,controlPt,endPt,percent) {
+        var x = Math.pow(1-percent,2) * startPt.x + 2 * (1-percent) * percent * controlPt.x + Math.pow(percent,2) * endPt.x;
+        var y = Math.pow(1-percent,2) * startPt.y + 2 * (1-percent) * percent * controlPt.y + Math.pow(percent,2) * endPt.y;
+        return( {x:x,y:y} );
+    }
+
+    function getCubicBezierXYatPercent(startPt,controlPt1,controlPt2,endPt,percent){
+        var x=CubicN(percent,startPt.x,controlPt1.x,controlPt2.x,endPt.x);
+        var y=CubicN(percent,startPt.y,controlPt1.y,controlPt2.y,endPt.y);
+        return({x:x,y:y});
+    }
+
+    function CubicN(pct, a,b,c,d) {
+        var t2 = pct * pct;
+        var t3 = t2 * pct;
+        return a + (-a * 3 + pct * (3 * a - a * pct)) * pct
+            + (3 * b + pct * (-6 * b + b * 3 * pct)) * pct
+            + (c * 3 - c * 3 * pct) * t2
+            + d * t3;
+    }
+
+    function resize() {
+        canvas.width   = window.innerWidth;
+        canvas.height  = window.innerHeight;
+        grd = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.height);
+        grd.addColorStop(0,"#000000");
+        grd.addColorStop(1,"#000000");
+    }
+
+    function draw() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        drawBackground();
+
+        for (var i = 0; i < letters.length; i++) {
+            letters[i].percent += 1;
+            letters[i].draw();
+            // letters[i].drawPath();
+            if(letters[i].percent > 100){
+                letters.splice(i, 1);
+            }
+        };
+
+        for (var i = 0; i < keys_down.length; i++) {
+            if(keys_down[i]){
+                letters.push(new Letter(i));
+            }
+        };
+        requestAnimationFrame(draw);
+    }
+    var start_keys = [81,87,69,82,84,89,85,73,79,80];
+
+    function startAnimation(){
+        setTimeout(function(){
+            var key = start_keys.pop();
+            keys_down[key] = true;
+            setTimeout(function(){
+                keys_down[key] = false;
+            },50);
+            if(start_keys.length > 0){
+                startAnimation();
+            }
+        }, 100);
+    }
+    resize();
+    draw();
+
+    function fetcher(){
+        fetch('https://corona.lmao.ninja/all')
+            .then((response) => {
+                return response.json();
+            })
+            .then((data) => {
+                document.getElementById('death').innerHTML=data.deaths;
+                let deaths = localStorage.getItem('deaths');
+                if(deaths === null) {
+                    localStorage.setItem('deaths',data.deaths);
+                    startAnimation();
+                    sound.play();
+                } else {
+                    let num_new_d = Number(data.deaths);
+                    let num_old_d = Number(deaths);
+                    if(num_new_d>num_old_d){
+                        let old_100 = Math.floor(num_old_d/100)*100;
+                        let new_100 = Math.floor(num_new_d/100)*100;
+                        if(new_100>old_100) {
+                            startAnimation();
+                            sound.play();
+                        }
+                        localStorage.setItem('deaths',data.deaths);
+                    }
+                }
+            });
+    }
+
+    setInterval(function(){
+        fetcher();
+    },20000,fetcher());
+
+    window.onresize = resize;
+    window.requestAnimationFrame = (function(){
+        return  window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame ||
+            window.oRequestAnimationFrame ||
+            window.msRequestAnimationFrame ||
+            function (callback) {
+                window.setTimeout(callback, 1000 / 60);
+            };
+    })();
+
+</script>
+</body>
+</html>
