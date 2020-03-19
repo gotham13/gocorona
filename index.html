@@ -49,7 +49,8 @@
 
 <div class="ui inverted vertical masthead center aligned segment">
     <canvas id="canvas"></canvas>
-    <div class="ui  container" style=" position: relative; left: 0;right: 0; z-index: 1; pointer-events: none;">
+    <div class="ui huge button" onclick="all_countries(this);" style="position: relative; left: 0;right: 0; margin-top: 40px; z-index: 1; ">All Countries</div>
+    <div class="ui  container" id="container" style="visibility: hidden; position: relative; left: 0;right: 0; z-index: 1; pointer-events: none;">
 
         <h1 class="ui inverted header">
             Total Covid Deaths
@@ -62,10 +63,23 @@
             R.I.P
         </h1>
         <div style="height: 0; width:0" id="audio_div">
+            <audio src="go_corona.mp3"  hidden type="audio/mpeg" id="corona_audio"></audio>
         </div>
     </div>
 </div>
+<script
+        src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8="
+        crossorigin="anonymous"></script>
 <script>
+
+    function all_countries(button) {
+        button.style.visibility='hidden';
+        document.getElementById('container').style.visibility='';
+        setInterval(function(){
+            fetcher_world();
+        },60000,fetcher_world());
+    }
 
     var canvas = document.getElementById("canvas");
     var ctx = canvas.getContext("2d");
@@ -242,40 +256,44 @@
     resize();
     draw();
 
-    let audio_elem = document.getElementById('audio_div');
+    let audio_elem = document.getElementById('corona_audio');
 
-    function fetcher(){
-        fetch('https://corona.lmao.ninja/all')
+    function fetcher_world(){
+        fetch('https://cors-anywhere.herokuapp.com/https://www.worldometers.info/coronavirus/coronavirus-death-toll/')
             .then((response) => {
-                return response.json();
+                return response.text();
             })
             .then((data) => {
-                let deaths = localStorage.getItem('deaths');
-                if(deaths === null) {
-                    localStorage.setItem('deaths',data.deaths);
-                    audio_elem.innerHTML='<audio src="go_corona.mp3"  hidden type="audio/mpeg" autoplay="autoplay"></audio>';
-                    startAnimation();
-                } else {
 
-                    let num_new_d = Number(data.deaths);
-                    let num_old_d = Number(deaths);
-                    if(num_new_d>num_old_d){
-                        let old_100 = Math.floor(num_old_d/100)*100;
-                        let new_100 = Math.floor(num_new_d/100)*100;
-                        localStorage.setItem('deaths',data.deaths);
-                        if(new_100>old_100) {
-                            audio_elem.innerHTML='<audio src="go_corona.mp3"  hidden type="audio/mpeg" autoplay="autoplay"></audio>';
-                            startAnimation();
+                let page = $(data);
+
+                let main_counter_div = page.find("div[class='maincounter-number']").get()[0];
+                let fet_deaths = main_counter_div.innerText.split('  ')[0].replace(',','');
+                if (fet_deaths.length>0) {
+                    let deaths = localStorage.getItem('deaths');
+                    if(deaths === null) {
+                        localStorage.setItem('deaths',fet_deaths);
+                        audio_elem.play();
+                        startAnimation();
+                    } else {
+
+                        let num_new_d = Number(fet_deaths);
+                        let num_old_d = Number(deaths);
+                        if(num_new_d>num_old_d){
+                            let old_100 = Math.floor(num_old_d/100)*100;
+                            let new_100 = Math.floor(num_new_d/100)*100;
+                            localStorage.setItem('deaths',fet_deaths);
+                            if(new_100>old_100) {
+                                audio_elem.play();
+                                startAnimation();
+                            }
                         }
                     }
+                    document.getElementById('death').innerHTML=localStorage.getItem('deaths');
                 }
-                document.getElementById('death').innerHTML=localStorage.getItem('deaths');
             });
     }
 
-    setInterval(function(){
-        fetcher();
-    },60000,fetcher());
 
     window.onresize = resize;
     window.requestAnimationFrame = (function(){
