@@ -251,8 +251,6 @@
                 return response.json();
             })
             .then((data) => {
-                document.getElementById('death').innerHTML=data.deaths;
-
                 let deaths = localStorage.getItem('deaths');
                 if(deaths === null) {
                     localStorage.setItem('deaths',data.deaths);
@@ -272,12 +270,13 @@
                         }
                     }
                 }
+                document.getElementById('death').innerHTML=localStorage.getItem('deaths');
             });
     }
 
     setInterval(function(){
         fetcher();
-    },20000,fetcher());
+    },60000,fetcher());
 
     window.onresize = resize;
     window.requestAnimationFrame = (function(){
