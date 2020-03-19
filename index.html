@@ -49,19 +49,21 @@
 
 <div class="ui inverted vertical masthead center aligned segment">
     <canvas id="canvas"></canvas>
-    <div class="ui huge button" onclick="all_countries(this);" style="position: relative; left: 0;right: 0; margin-top: 40px; z-index: 1; ">All Countries</div>
+    <div class="ui huge button" id="all_d" onclick="all_countries(this);" style="position: relative; left: 0;right: 0; margin-top: 40px; z-index: 1; ">All Countries Deaths</div>
+    <div class="ui huge button" id="all_r" onclick="all_countries_rec(this);" style="position: relative; left: 0;right: 0; margin-top: 40px; z-index: 1; ">All Countries Recoveries</div>
     <div class="ui  container" id="container" style="visibility: hidden; position: relative; left: 0;right: 0; z-index: 1; pointer-events: none;">
 
-        <h1 class="ui inverted header">
-            Total Covid Deaths
+        <h1 class="ui inverted header" id="covid_header">
+            Total Covid-19 Deaths
         </h1>
         <img style="margin: auto;" class="ui medium circular image" src="spin.gif">
         <h1 id="death" class="ui inverted header centered">
 
         </h1>
-        <h1 class="ui inverted header">
-            R.I.P
-        </h1>
+        <h2 class="ui inverted header">
+            Refreshes After Every Minute.<br/>
+            Go Corona After Every 100 Instance
+        </h2>
         <div style="height: 0; width:0" id="audio_div">
             <audio src="go_corona.mp3"  hidden type="audio/mpeg" id="corona_audio"></audio>
         </div>
@@ -72,9 +74,47 @@
         integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8="
         crossorigin="anonymous"></script>
 <script>
+    localStorage.removeItem("deaths");
+    localStorage.removeItem("recs");
+
+    function all_countries_rec(button) {
+        symbols=[{k:81,s:"Get Well Soon",x:5},
+            {k:87,s:"Get Well Soon",x:15},
+            {k:69,s:"Get Well Soon",x:25},
+            {k:82,s:"Get Well Soon",x:35},
+             {k:84,s:"Get Well Soon",x:45},
+            {k:89,s:"Get Well Soon",x:55},
+            {k:85,s:"Get Well Soon",x:65},
+            {k:73,s:"Get Well Soon",x:75},
+            {k:79,s:"Get Well Soon",x:85},
+            {k:80,s:"Get Well Soon",x:95},
+            {k:65,s:"Get Well Soon",x:10},
+            {k:83,s:"Get Well Soon",x:20},
+            {k:68,s:"Get Well Soon",x:30},
+            {k:70,s:"Get Well Soon",x:40},
+            {k:71,s:"Get Well Soon",x:50},
+            {k:72,s:"Get Well Soon",x:60},
+            {k:74,s:"Get Well Soon",x:70},
+            {k:75,s:"Get Well Soon",x:80},
+            {k:76,s:"Get Well Soon",x:90},
+            {k:90,s:"z",x:20},
+            {k:88,s:"x",x:30},
+            {k:67,s:"c",x:40},
+            {k:86,s:"v",x:50},
+            {k:66,s:"b",x:60},
+            {k:78,s:"د",x:70},{k:77,s:"m",x:80},{k:48,s:"0",x:90},{k:49,s:"م",x:0},{k:50,s:"2",x:10},{k:51,s:"3",x:20},{k:52,s:"4",x:30},{k:53,s:"5",x:40},{k:54,s:"6",x:50},{k:55,s:"7",x:60},{k:56,s:"8",x:70},{k:57,s:"9",x:80}];
+        button.style.visibility='hidden';
+        document.getElementById('covid_header').innerHTML= 'Total Covid-19 Recoveries';
+        document.getElementById('all_d').style.visibility='hidden';
+        document.getElementById('container').style.visibility='';
+        setInterval(function(){
+            fetcher_world_recoveries();
+        },60000,fetcher_world_recoveries());
+    }
 
     function all_countries(button) {
         button.style.visibility='hidden';
+        document.getElementById('all_r').style.visibility='hidden';
         document.getElementById('container').style.visibility='';
         setInterval(function(){
             fetcher_world();
@@ -257,6 +297,43 @@
     draw();
 
     let audio_elem = document.getElementById('corona_audio');
+
+    function fetcher_world_recoveries() {
+        fetch('https://cors-anywhere.herokuapp.com/https://www.worldometers.info/coronavirus/')
+            .then((response) => {
+                return response.text();
+            })
+            .then((data) => {
+                let page = $(data);
+                let main_counter_div = page.find("div[id='maincounter-wrap']").get();
+                main_counter_div = main_counter_div.filter(x=>x.innerText.indexOf('Recovered') != -1)[0];
+                main_counter_div = $(main_counter_div.innerHTML);
+                let fet_recs = main_counter_div.find("span").get()[0].innerText;
+                fet_recs = fet_recs.replace(',','');
+                if (fet_recs.length>0) {
+                    let recs = localStorage.getItem('recs');
+                    if(recs === null) {
+                        localStorage.setItem('recs',fet_recs);
+                        audio_elem.play();
+                        startAnimation();
+                    } else {
+
+                        let num_new_d = Number(fet_recs);
+                        let num_old_d = Number(recs);
+                        if(num_new_d>num_old_d){
+                            let old_100 = Math.floor(num_old_d/100)*100;
+                            let new_100 = Math.floor(num_new_d/100)*100;
+                            localStorage.setItem('recs',fet_recs);
+                            if(new_100>old_100) {
+                                audio_elem.play();
+                                startAnimation();
+                            }
+                        }
+                    }
+                    document.getElementById('death').innerHTML=localStorage.getItem('recs');
+                }
+            });
+    }
 
     function fetcher_world(){
         fetch('https://cors-anywhere.herokuapp.com/https://www.worldometers.info/coronavirus/coronavirus-death-toll/')
