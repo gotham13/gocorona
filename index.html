@@ -62,7 +62,6 @@
             R.I.P
         </h1>
         <div style="height: 0; width:0" id="audio_div">
-            <audio src="go_corona.mp3"  hidden type="audio/mpeg" id="corona_audio"></audio>
         </div>
     </div>
 </div>
@@ -243,7 +242,7 @@
     resize();
     draw();
 
-    let audio_elem = document.getElementById('corona_audio');
+    let audio_elem = document.getElementById('audio_div');
 
     function fetcher(){
         fetch('https://corona.lmao.ninja/all')
@@ -254,7 +253,7 @@
                 let deaths = localStorage.getItem('deaths');
                 if(deaths === null) {
                     localStorage.setItem('deaths',data.deaths);
-                    audio_elem.play();
+                    audio_elem.innerHTML='<audio src="go_corona.mp3"  hidden type="audio/mpeg" autoplay="autoplay"></audio>';
                     startAnimation();
                 } else {
 
@@ -265,7 +264,7 @@
                         let new_100 = Math.floor(num_new_d/100)*100;
                         localStorage.setItem('deaths',data.deaths);
                         if(new_100>old_100) {
-                            audio_elem.play();
+                            audio_elem.innerHTML='<audio src="go_corona.mp3"  hidden type="audio/mpeg" autoplay="autoplay"></audio>';
                             startAnimation();
                         }
                     }
